@@ -1,0 +1,30 @@
+# Artifacts (generated per ticket, not committed)
+artifacts/
+
+# Generated MCP instructions
+.github/generated/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+
+# Node
+node_modules/
+.next/
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/settings.json
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local

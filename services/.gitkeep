@@ -1,0 +1,3 @@
+# Services directory
+# Add your repos as git submodules here:
+#   make add-service NAME=my-svc REPO=git@github.com:org/my-svc.git

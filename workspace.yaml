@@ -1,0 +1,135 @@
+# workspace.yaml — Agentic Workspace Configuration
+#
+# This is the single source of truth for your project.
+# The agent reads this to understand your services, environment, and conventions.
+#
+# To get started:
+#   1. Update project name and ticket prefix
+#   2. Add your services (or use `make add-service`)
+#   3. Choose your environment formula
+#   4. Run `make init`
+
+project:
+  name: "my-project"                    # Your project/product name
+  description: "Multi-service platform" # Brief description
+  ticket_prefix: "PROJ"                 # Jira/GitHub prefix (e.g., PROJ-1234)
+
+# ---------------------------------------------------------------------------
+# Services — your repos added as git submodules under services/
+# ---------------------------------------------------------------------------
+# Each service describes how to build, test, and deploy it.
+# Add services manually here OR use: make add-service NAME=my-svc REPO=git@github.com:org/my-svc.git
+#
+# Supported languages: python, node, go, java, rust, dotnet, ruby, other
+# For 'other', specify build/test/lint commands explicitly.
+
+services: []
+  # Example:
+  # - name: backend-api
+  #   path: services/backend-api           # Path relative to workspace root
+  #   repo: git@github.com:org/backend-api.git
+  #   language: python
+  #   build: "poetry install"
+  #   test: "poetry run pytest tests/ -v"
+  #   lint: "poetry run ruff check ."
+  #   deploy: "make install-backend-api"   # Workspace-level deploy command
+  #   health_endpoint: "/healthz"
+  #   namespace: "backend"                 # K8s namespace (if applicable)
+  #   port: 8080
+  #
+  # - name: frontend
+  #   path: services/frontend
+  #   repo: git@github.com:org/frontend.git
+  #   language: node
+  #   build: "npm install"
+  #   test: "npm test"
+  #   lint: "npm run lint"
+  #   deploy: "make install-frontend"
+  #   health_endpoint: "/"
+  #   namespace: "frontend"
+  #   port: 3000
+
+# ---------------------------------------------------------------------------
+# Environment — how your services run locally
+# ---------------------------------------------------------------------------
+# Formulas are pre-built adapters for common environments.
+# Use 'custom' to define your own commands.
+
+environment:
+  formula: kubernetes                    # kubernetes | docker-compose | custom
+
+  # Kubernetes-specific (when formula: kubernetes)
+  kubernetes:
+    context: "docker-desktop"            # kubectl context name
+    # kubeconfig: "~/.kube/config"       # optional: path to kubeconfig
+
+  # Docker Compose-specific (when formula: docker-compose)
+  # docker_compose:
+  #   file: "docker-compose.yml"
+  #   project: "my-project"
+
+  # Custom commands (when formula: custom, or to override formula defaults)
+  # commands:
+  #   health: "your-health-check-command"
+  #   deploy: "your-deploy-command"
+  #   logs: "your-logs-command SERVICE"
+  #   restart: "your-restart-command SERVICE"
+
+  # Workspace-level test commands (all formulas)
+  tests:
+    quick: "make test-quick"             # Fast sanity check (<30s)
+    full: "make test-full"               # Comprehensive test suite
+    smoke: "make test-smoke"             # Endpoint verification
+
+# ---------------------------------------------------------------------------
+# Ticketing — where your work items come from
+# ---------------------------------------------------------------------------
+# Provider is auto-detected from available MCP servers.
+# Explicit config here is optional but helpful.
+
+ticketing:
+  provider: auto                         # auto | jira | github | linear | none
+  # jira:
+  #   project: "PROJ"
+  #   cloud_id: ""                       # Atlassian cloud ID (for MCP)
+  # github:
+  #   owner: "org"
+  #   repo: "project"
+
+# ---------------------------------------------------------------------------
+# Gates — human approval checkpoints
+# ---------------------------------------------------------------------------
+# Gates are the ONLY mandatory interaction points.
+# Between gates, the agent runs autonomously.
+
+gates:
+  plan_approval: true                    # Ask before implementing (recommended)
+  pr_creation: true                      # Ask before opening PR (recommended)
+  # review_resolution: true              # Ask before addressing review comments
+
+# ---------------------------------------------------------------------------
+# Risk triggers — conditions that interrupt autonomous execution
+# ---------------------------------------------------------------------------
+# Set to false to disable specific triggers.
+
+risk_triggers:
+  multi_service_change: true             # >1 repo modified
+  schema_migration: true                 # DB schema files changed
+  dependency_bump: true                  # Lock files changed
+  large_diff: true                       # >500 LOC changed
+  large_diff_threshold: 500              # LOC threshold
+  test_failures: true                    # Tests fail after retries
+  scope_drift: true                      # Implementation ≠ plan
+  missing_repro: true                    # Can't reproduce issue
+
+# ---------------------------------------------------------------------------
+# Conventions — coding standards the agent follows
+# ---------------------------------------------------------------------------
+
+conventions:
+  branch_prefix_bug: "fix/"              # fix/PROJ-1234
+  branch_prefix_feature: "feature/"      # feature/PROJ-1234
+  commit_format: "conventional"          # conventional | simple
+  # conventional: fix(PROJ-1234): description
+  # simple: PROJ-1234: description
+  max_review_cycles: 2                   # Escalate after N revision rounds
