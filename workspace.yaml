@@ -75,9 +75,14 @@ environment:
     context: "docker-desktop"            # kubectl context name
 
   tests:
-    quick: "make test-quick"             # Fast sanity check (<30s)
+    quick: "make test-smoke"             # Fast sanity check (<30s)
     full: "make test-full"               # Comprehensive test suite
     smoke: "make test-smoke"             # Endpoint verification
+    api: "make test-api"                 # API integration tests
+    browser: "make test-browser"         # UI/Playwright tests
+    contract: "make test-contract"       # Cross-service contract tests
+    e2e: "make test-e2e"                 # End-to-end workflow tests
+    security: "make test-security"       # Security tests
 
 # ---------------------------------------------------------------------------
 # Ticketing — where your work items come from

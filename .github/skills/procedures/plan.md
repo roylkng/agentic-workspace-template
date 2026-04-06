@@ -50,11 +50,14 @@ Name specific tests:
 
 | Type | What | Service |
 |------|------|---------|
+| Reproduce test | `test_proj_1234_description` — currently failing, should pass after fix | backend-api |
 | Existing unit | `test_auth_middleware.py` — should still pass | backend-api |
-| New unit | Test for the fix (minimum: one test that would have caught the bug) | backend-api |
-| Integration | `make test-quick` | workspace |
+| Integration | `make test-smoke`, `make test-api` | workspace |
+| Contract | `make test-contract` — if cross-service interfaces change | workspace |
 
 If no tests exist for affected code → write one. Untested fixes aren't verifiable.
+
+For bugs: the reproduce test written in Step 3 is the primary verification.
 
 ---
 

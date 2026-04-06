@@ -11,9 +11,38 @@
 
 ---
 
+## Step 0: Re-run Reproduce Test (Bugs Only)
+
+**First thing**: re-run the reproduce test from the reproduce-test procedure.
+
+```bash
+# Same command used in reproduce-test step
+<service.test> <test_path>::<test_name>
+```
+
+| Result | Action |
+|--------|--------|
+| ✅ PASSES | Fix works — continue to Step 1 |
+| ❌ FAILS | Fix incomplete — go back to implement |
+
+This is non-negotiable for bugs. If the reproduce test still fails, the fix is not done.
+
+---
+
 ## Step 1: Workspace Tests
 
 Run each modified service's test suite. If integration test targets exist, run those too.
+
+Use the typed test targets based on what changed:
+
+```bash
+make test-smoke       # Always run — basic health
+make test-api         # If API endpoints changed
+make test-contract    # If cross-service interfaces changed
+make test-browser     # If UI affected
+make test-e2e         # If full workflow affected
+make test-security    # If auth/permissions changed
+```
 
 ### Test failure decision
 
@@ -53,9 +82,20 @@ When change affects frontend or API called by UI:
 ```markdown
 ## Test Results: <TICKET>
 
+### Reproduce Test (Bugs)
+| Test | Command | Before Fix | After Fix |
+|------|---------|-----------|-----------|
+| test_proj_1234_desc | pytest path::name -v | ❌ FAIL | ✅ PASS |
+
 ### Service Tests
 | Service | Command | Result |
 |---------|---------|--------|
+
+### Workspace Tests
+| Suite | Command | Result |
+|-------|---------|--------|
+| smoke | make test-smoke | ✅ / ❌ |
+| api | make test-api | ✅ / ❌ |
 
 ### Pre-existing Issues
 | Test | Service | Status | On main? |

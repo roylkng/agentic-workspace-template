@@ -1,7 +1,7 @@
 # Skill: Development Agent
 
 > End-to-end ticket completion. Input: ticket key. Gates: Plan Approval + PR Creation.
-> Orchestrates procedures: investigate, plan, implement, verify, changeset, pr-compose.
+> Orchestrates procedures: reproduce-test, investigate, plan, implement, verify, changeset, pr-compose.
 
 ---
 
@@ -19,8 +19,8 @@
 
 | Gate | When | Purpose |
 |------|------|---------|
-| **Plan Approval** | After investigation, before coding | Prevents wasted work on wrong assumptions |
-| **PR Creation** | After all tests pass, before opening PR | Prevents unreviewed code from hitting repos |
+| **Plan Approval** | After reproduce test + investigation, before coding | Prevents wasted work on wrong assumptions |
+| **PR Creation** | After all tests pass (including reproduce test), before opening PR | Prevents unreviewed code from hitting repos |
 
 These are non-negotiable. Even if the fix is one line, both gates apply.
 
@@ -85,7 +85,38 @@ make snapshot TICKET=<KEY>
 
 ---
 
-## Step 3: Investigate
+## Step 3: Reproduce Test (Bugs Only)
+
+> **Test-first for bugs**: Before RCA or code changes, write a test that captures the bug.
+> For features/tasks, skip to Step 4.
+
+**Silent unless trigger fires.**
+
+Execute the **[reproduce-test procedure](../procedures/reproduce-test.md)** in full:
+
+1. Search for existing tests covering the bug area
+2. If existing test already fails → document it, skip to Step 4
+3. Determine test type: unit (service-level) or API/browser/contract (workspace-level)
+4. Write a test that asserts **correct** behavior (so it fails with the bug present)
+5. Run the test — **confirm it fails**
+6. Document test details in `investigation.md` § Reproduce Test
+
+**Test naming**: `test_<ticket_key_lowercase>_<description>`
+
+**Where to put it:**
+- Business logic bug → service repo `services/<svc>/tests/`
+- API endpoint bug → workspace `tests/api/test_<svc>.py`
+- UI bug → workspace `tests/browser/test_<feature>.py`
+- Cross-service bug → workspace `tests/contract/test_<contract>.py`
+
+**Check risk triggers:**
+- Cannot write test AND cannot reproduce after 3 attempts → **TRIGGER: Missing repro**
+
+**Output**: Failing test (committed or staged). Test info recorded for plan gate.
+
+---
+
+## Step 4: Investigate
 
 **Silent unless trigger fires.**
 
@@ -93,7 +124,7 @@ Execute the **[investigate procedure](../procedures/investigate.md)** in full:
 
 1. Verify environment health (`make env-check`)
 2. Map the request path
-3. Collect error signals (logs, reproduction, recent changes)
+3. Use the failing test output (assertion message, stack trace) to guide investigation
 4. Root cause analysis (using the 5 strategies from the procedure)
 5. Verify root cause (mechanism + specificity + reproduction + completeness tests)
 6. Write `investigation.md`
@@ -102,7 +133,7 @@ Execute the **[investigate procedure](../procedures/investigate.md)** in full:
 
 ---
 
-## Step 4: Plan Gate [HUMAN APPROVAL REQUIRED]
+## Step 5: Plan Gate [HUMAN APPROVAL REQUIRED]
 
 **Present to user (10-15 lines max):**
 
@@ -110,6 +141,7 @@ Execute the **[investigate procedure](../procedures/investigate.md)** in full:
 ## Plan: <TICKET>
 
 **Root Cause**: <one sentence from investigation.md>
+**Reproduce Test**: <test_name> — ❌ FAILING (bugs only)
 **Fix**: <one sentence — what will change>
 **Risk**: Low / Medium / High — <one sentence why>
 
@@ -125,7 +157,7 @@ Proceed? [yes / no / modify]
 
 | User Response | Action |
 |---------------|--------|
-| "yes" / "proceed" / approval | Move to Step 5 |
+| "yes" / "proceed" / approval | Move to Step 6 |
 | "no" / "stop" | Stop. Branches not created. Artifacts preserved |
 | "modify" / feedback | Revise the plan based on feedback, re-present |
 | Asks questions | Answer from investigation context, re-present plan |
@@ -134,7 +166,7 @@ The plan presented here is a summary. The full plan is written to `plan.md` per 
 
 ---
 
-## Step 5: Implement
+## Step 6: Implement
 
 **Silent unless trigger fires.**
 
@@ -155,22 +187,25 @@ Execute the **[implement procedure](../procedures/implement.md)** in full:
 
 ---
 
-## Step 6: Verify
+## Step 7: Verify
 
 **Silent unless trigger fires.**
 
 Execute the **[verify procedure](../procedures/verify.md)** in full:
 
-1. Run workspace-level tests (each modified service's test suite)
-2. Cross-service verification (API contracts, env vars, DB if applicable)
-3. UI verification (if applicable + Playwright MCP available)
-4. Capture evidence → `test-results.md`
+1. **Re-run the reproduce test first** — confirm it now PASSES (bugs only)
+2. Run workspace-level tests (each modified service's test suite)
+3. Cross-service verification (API contracts, env vars, DB if applicable)
+4. UI verification (if applicable + Playwright MCP available)
+5. Capture evidence → `test-results.md`
 
-**If tests fail after 2 retry cycles → TRIGGER: Test failures.**
+**If the reproduce test still fails → the fix is incomplete. Go back to Step 6.**
+
+**If other tests fail after 2 retry cycles → TRIGGER: Test failures.**
 
 ---
 
-## Step 7: Push & Track
+## Step 8: Push & Track
 
 **Silent.**
 
@@ -190,7 +225,7 @@ If validation finds missing artifacts, fill them before proceeding.
 
 ---
 
-## Step 8: PR Gate [HUMAN APPROVAL REQUIRED]
+## Step 9: PR Gate [HUMAN APPROVAL REQUIRED]
 
 **Present to user:**
 
@@ -217,13 +252,13 @@ Open PR(s)? [yes / no]
 
 | User Response | Action |
 |---------------|--------|
-| "yes" | Create PRs via MCP (Step 9), then auto-review |
+| "yes" | Create PRs via MCP (Step 10), then auto-review |
 | "no" | Stop. Branches exist on remote but no PRs created. User can create manually |
-| Asks for changes | Go back to Step 5 with the new instructions |
+| Asks for changes | Go back to Step 6 with the new instructions |
 
 ---
 
-## Step 9: Create PRs & Auto-Review
+## Step 10: Create PRs & Auto-Review
 
 Execute the **[pr-compose procedure](../procedures/pr-compose.md)**:
 
@@ -244,14 +279,16 @@ Then, if GitHub MCP is available, invoke **[code-review skill](../code-review/SK
 | Error | At Step | Recovery |
 |-------|---------|---------|
 | Can't fetch ticket from MCP | 1 | Ask user to paste ticket details |
-| Environment unhealthy | 3 | Show env-check output, ask user to fix, then retry |
+| Can't reproduce bug in test | 3 | Try different test type/setup. After 3 attempts → TRIGGER: Missing repro |
+| Environment unhealthy | 4 | Show env-check output, ask user to fix, then retry |
 | Can't find affected service | 2 | Show service list, ask user which service |
-| Git conflicts on branch creation | 5 | `git pull --rebase origin main`, retry |
-| Lint fails on your code | 5 | Fix lint errors (they're part of implementation) |
-| Pre-existing lint errors | 5 | Note in changes.md, don't fix |
-| Tests fail on your code | 5-6 | Fix the implementation. If you can't, trigger test-failures |
-| Push rejected | 7 | Check permissions. If auth issue, ask user |
-| PR creation fails via MCP | 9 | Present pr-body.md for manual creation |
+| Git conflicts on branch creation | 6 | `git pull --rebase origin main`, retry |
+| Lint fails on your code | 6 | Fix lint errors (they're part of implementation) |
+| Pre-existing lint errors | 6 | Note in changes.md, don't fix |
+| Reproduce test still fails | 7 | Fix incomplete — go back to Step 6 |
+| Tests fail on your code | 6-7 | Fix the implementation. If you can't, trigger test-failures |
+| Push rejected | 8 | Check permissions. If auth issue, ask user |
+| PR creation fails via MCP | 10 | Present pr-body.md for manual creation |
 
 ---
 

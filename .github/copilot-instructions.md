@@ -31,7 +31,7 @@
 ## The 2-Gate Model
 
 ```
-Investigate → ① PLAN GATE → Implement & Test → ② PR GATE → Ship
+Classify → Reproduce Test (bugs) → Investigate → ① PLAN GATE → Implement & Test → ② PR GATE → Ship
 ```
 
 Between gates: autonomous. Interrupt only on risk triggers:
@@ -51,16 +51,18 @@ Between gates: autonomous. Interrupt only on risk triggers:
 1. Read `docs/` if it exists — service maps, conventions, etc.
 2. Read `workspace.yaml` for services, test commands
 3. Run `make env-check` before investigating bugs
+4. **For bugs: write a failing test FIRST** (reproduce-test procedure) — before RCA or code changes
 
 **When writing code:**
-4. Read the file before editing — match style, patterns, imports
-5. No drive-by changes — only modify what the plan specifies
-6. Run lint + tests from `workspace.yaml`
+5. Read the file before editing — match style, patterns, imports
+6. No drive-by changes — only modify what the plan specifies
+7. Run lint + tests from `workspace.yaml`
+8. **Re-run the reproduce test** — if it still fails, the fix is incomplete
 
 **When searching across services:**
-7. `grep -rn` with specific patterns — don't guess
-8. Follow imports and clients for real connections
-9. Check Docker/K8s configs for network topology
+9. `grep -rn` with specific patterns — don't guess
+10. Follow imports and clients for real connections
+11. Check Docker/K8s configs for network topology
 
 ---
 
@@ -87,6 +89,15 @@ make snapshot TICKET=X        # Baseline SHAs
 make snapshot-after TICKET=X  # Post-change SHAs
 make diff TICKET=X            # Show submodule changes
 make validate TICKET=X        # Check artifact completeness
+
+# Tests (by type — see tests/README.md)
+make test-smoke               # Health checks (<30s)
+make test-api                 # API integration
+make test-browser             # UI tests (Playwright)
+make test-contract            # Cross-service contracts
+make test-e2e                 # End-to-end workflows
+make test-security            # Security tests
+make test-full                # Everything
 ```
 
 ---
@@ -95,8 +106,9 @@ make validate TICKET=X        # Check artifact completeness
 
 ```
 artifacts/<TICKET>/<timestamp>/
-├── ticket.md, investigation.md, plan.md, changes.md
-├── test-results.md, submodules-before.json, submodules-after.json
+├── ticket.md, investigation.md (with reproduce test), plan.md, changes.md
+├── test-results.md (with before/after reproduce test status)
+├── submodules-before.json, submodules-after.json
 ├── submodule-diff.md, pr-body.md, screenshots/
 ```
 

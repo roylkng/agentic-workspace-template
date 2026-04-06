@@ -263,20 +263,45 @@ _env-check-custom:
 # TESTING
 # =============================================================================
 
-.PHONY: test-quick
-test-quick: ## Fast sanity check (<30s)
-	@echo ">>> Quick Test Suite"
-	@python3 scripts/run-tests.py quick
-
-.PHONY: test-full
-test-full: ## Comprehensive test suite
-	@echo ">>> Full Test Suite"
-	@python3 scripts/run-tests.py full
+TESTS_DIR := tests
 
 .PHONY: test-smoke
-test-smoke: ## Endpoint verification
-	@echo ">>> Smoke Tests (health endpoints)"
-	@python3 scripts/run-tests.py smoke
+test-smoke: ## Health endpoint checks (<30s)
+	@echo ">>> Smoke Tests"
+	@cd $(TESTS_DIR) && python -m pytest smoke/ -v -m smoke --timeout=30
+
+.PHONY: test-api
+test-api: ## API endpoint integration tests
+	@echo ">>> API Tests"
+	@cd $(TESTS_DIR) && python -m pytest api/ -v -m api --timeout=60
+
+.PHONY: test-browser
+test-browser: ## Browser/UI tests (Playwright)
+	@echo ">>> Browser Tests"
+	@cd $(TESTS_DIR) && python -m pytest browser/ -v -m browser --timeout=120
+
+.PHONY: test-contract
+test-contract: ## Cross-service API contract tests
+	@echo ">>> Contract Tests"
+	@cd $(TESTS_DIR) && python -m pytest contract/ -v -m contract --timeout=60
+
+.PHONY: test-e2e
+test-e2e: ## End-to-end workflow tests
+	@echo ">>> E2E Tests"
+	@cd $(TESTS_DIR) && python -m pytest e2e/ -v -m e2e --timeout=120
+
+.PHONY: test-security
+test-security: ## Security tests (auth, injection, access control)
+	@echo ">>> Security Tests"
+	@cd $(TESTS_DIR) && python -m pytest security/ -v -m security --timeout=60
+
+.PHONY: test-quick
+test-quick: test-smoke ## Alias for test-smoke (fast sanity check)
+
+.PHONY: test-full
+test-full: ## Run all test suites
+	@echo ">>> Full Test Suite"
+	@cd $(TESTS_DIR) && python -m pytest -v --timeout=120
 
 # =============================================================================
 # SERVICE OPERATIONS (thin wrappers — agent handles complex logic via skills)

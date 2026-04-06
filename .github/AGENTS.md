@@ -18,6 +18,7 @@ Routes requests to skills. See copilot-instructions.md for the full routing tabl
 
 | Procedure | File |
 |-----------|------|
+| reproduce-test | [reproduce-test.md](skills/procedures/reproduce-test.md) |
 | investigate | [investigate.md](skills/procedures/investigate.md) |
 | plan | [plan.md](skills/procedures/plan.md) |
 | implement | [implement.md](skills/procedures/implement.md) |

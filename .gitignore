@@ -28,3 +28,10 @@ Thumbs.db
 # Environment
 .env
 .env.local
+
+# Test outputs
+.pytest_cache/
+htmlcov/
+.coverage
+test-results/
+playwright-report/

@@ -1,10 +1,17 @@
 # Test Results: {{TICKET_KEY}}
 
+## Reproduce Test (Bugs Only)
+
+| Test | Command | Before Fix | After Fix |
+|------|---------|-----------|-----------|
+| <!-- test name --> | <!-- run command --> | ❌ FAIL | <!-- ✅ PASS / ❌ FAIL --> |
+
 ## Workspace Tests
 
 | Test Suite | Result | Duration |
 |-----------|--------|----------|
-| test-quick |        |          |
+| test-smoke |        |          |
+| test-api   |        |          |
 | test-full  |        |          |
 
 ## Service Tests

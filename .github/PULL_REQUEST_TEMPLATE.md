@@ -17,8 +17,11 @@
 
 ### Testing
 
-- [ ] Unit tests passing
-- [ ] Integration tests passing (`make test-quick`)
+- [ ] Reproduce test: `test_<ticket>_<desc>` — ❌ before → ✅ after (bugs only)
+- [ ] Service tests passing
+- [ ] Smoke tests (`make test-smoke`)
+- [ ] API tests (`make test-api`) — if endpoints changed
+- [ ] Contract tests (`make test-contract`) — if cross-service changes
 - [ ] Full test suite (`make test-full`)
 - [ ] UI verification (if applicable)
 

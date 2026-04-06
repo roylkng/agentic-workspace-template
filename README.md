@@ -79,7 +79,7 @@ Skills are organized copilot instructions with decision trees, grep patterns, er
 | **[Workspace Understand](.github/skills/workspace-understand/SKILL.md)** | Map services, detect frameworks, generate dependency graph |
 | **[Env Health](.github/skills/env-health/SKILL.md)** | Check environment readiness, diagnose common issues |
 
-Plus 6 atomic procedures used by the dev agent: [investigate](.github/skills/procedures/investigate.md), [plan](.github/skills/procedures/plan.md), [implement](.github/skills/procedures/implement.md), [verify](.github/skills/procedures/verify.md), [changeset](.github/skills/procedures/changeset.md), [pr-compose](.github/skills/procedures/pr-compose.md).
+Plus 7 atomic procedures used by the dev agent: [reproduce-test](.github/skills/procedures/reproduce-test.md), [investigate](.github/skills/procedures/investigate.md), [plan](.github/skills/procedures/plan.md), [implement](.github/skills/procedures/implement.md), [verify](.github/skills/procedures/verify.md), [changeset](.github/skills/procedures/changeset.md), [pr-compose](.github/skills/procedures/pr-compose.md).
 
 ### Artifact System
 
@@ -148,6 +148,15 @@ make snapshot TICKET=X       # Capture baseline submodule SHAs
 make snapshot-after TICKET=X # Capture post-change SHAs
 make diff TICKET=X           # Show what changed across repos
 make validate TICKET=X       # Check artifact completeness
+
+# Testing (by type — see tests/README.md)
+make test-smoke              # Health checks (<30s)
+make test-api                # API integration tests
+make test-browser            # UI tests (Playwright)
+make test-contract           # Cross-service contract tests
+make test-e2e                # End-to-end workflow tests
+make test-security           # Security tests
+make test-full               # Everything
 ```
 
 ## Structure
@@ -164,8 +173,17 @@ workspace/
 │   │   ├── code-review/
 │   │   ├── workspace-understand/
 │   │   ├── env-health/
-│   │   └── procedures/
+│   │   └── procedures/            # Atomic steps (reproduce-test, investigate, plan, etc.)
 │   └── templates/                 # Artifact templates
+├── tests/                         # Workspace-level tests
+│   ├── pytest.ini                 # Markers and config
+│   ├── conftest.py                # Shared fixtures
+│   ├── smoke/                     # Health checks (<30s)
+│   ├── api/                       # Per-service API tests
+│   ├── browser/                   # UI tests (Playwright)
+│   ├── contract/                  # Cross-service contract tests
+│   ├── e2e/                       # End-to-end workflows
+│   └── security/                  # Auth, injection, access control
 ├── workspace.yaml                 # Single config file
 ├── Makefile                       # Bootstrap CLI
 ├── docs/                          # Workspace documentation
@@ -178,13 +196,23 @@ workspace/
 ## The 2-Gate Model
 
 ```
-Investigate → ① PLAN GATE → Implement & Test → ② PR GATE → Ship
+Classify → Reproduce Test (bugs) → Investigate → ① PLAN GATE → Implement & Verify → ② PR GATE → Ship
 ```
 
-1. **Plan Gate** — "Here's what I'm going to change. Proceed?" Prevents wasted implementation.
-2. **PR Gate** — "Tests pass, here's the PR. Open it?" Prevents unreviewed code.
+1. **Plan Gate** — "Here's what I'm going to change, and here's the failing test. Proceed?" Prevents wasted implementation.
+2. **PR Gate** — "Tests pass (including the reproduce test), here's the PR. Open it?" Prevents unreviewed code.
 
 Everything between runs autonomously. Unless a **risk trigger** fires (multi-service change, schema migration, large diff, test failures), then the agent pauses and asks.
+
+### Test-First for Bugs
+
+For bugs, the agent writes a **reproduce test** before investigating:
+
+1. Identifies where the test belongs (service unit test vs workspace API/browser test)
+2. Writes a test that asserts correct behavior (so it **fails** with the bug present)
+3. Uses the test's failure output to guide root cause investigation
+4. After the fix, confirms the test **passes** — proving the fix works
+5. The test stays in the suite permanently as a regression guard
 
 ## Multi-Repo Protocol
 
