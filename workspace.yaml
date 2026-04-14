@@ -17,21 +17,32 @@ project:
 # ---------------------------------------------------------------------------
 # Services — git submodules at the workspace root
 # ---------------------------------------------------------------------------
-# Each service describes how to build, test, and deploy it.
-# Add submodules with: git submodule add <repo-url> <service-name>
+# Each service is a git submodule at the workspace root.
+# Add with: git submodule add <repo-url> <name>
 #
-# Supported languages: python, node, go, java, rust, dotnet, ruby, other
+# Fields:
+#   name:             Service identifier
+#   path:             Relative to workspace root (usually same as name)
+#   language:         python | node | go | java | rust | dotnet | ruby | other
+#   framework:        (optional) fastapi, express, gin, spring, etc.
+#   build:            Command to install dependencies
+#   test:             Command to run tests
+#   lint:             Command to run linter
+#   health_endpoint:  Path for health checks (e.g., /healthz)
+#   namespace:        Kubernetes namespace (if applicable)
+#   port:             Service port
+#   description:      One-line description
 
 services: []
   # Example:
+  #
   # - name: backend-api
-  #   path: backend-api                    # Relative to workspace root
+  #   path: backend-api
   #   language: python
   #   framework: fastapi
   #   build: "poetry install"
   #   test: "poetry run pytest tests/ -v"
   #   lint: "poetry run ruff check ."
-  #   deploy: "make install-backend-api"
   #   health_endpoint: "/healthz"
   #   namespace: "backend"
   #   port: 8080
@@ -44,7 +55,6 @@ services: []
   #   build: "npm install"
   #   test: "npm test"
   #   lint: "npm run lint"
-  #   deploy: "make install-frontend"
   #   health_endpoint: "/"
   #   namespace: "frontend"
   #   port: 3000

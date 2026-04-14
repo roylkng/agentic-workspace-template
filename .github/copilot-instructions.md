@@ -23,8 +23,9 @@
 | "review PR #42" | Code Review | [SKILL.md](skills/code-review/SKILL.md) |
 | "understand the workspace" | Workspace Understand | [SKILL.md](skills/workspace-understand/SKILL.md) |
 | "check environment" | Env Health | [SKILL.md](skills/env-health/SKILL.md) |
+| "what MCP tools are available" | Discover MCP | [SKILL.md](skills/discover-mcp/SKILL.md) |
 
-**Ambiguous?** Ticket key or bug/feature → Dev Agent. Tickets without a key → Ticketflow. Codebase structure → Workspace Understand.
+**Ambiguous?** Ticket key or bug/feature → Dev Agent. Tickets without a key → Ticketflow. Codebase structure → Workspace Understand. MCP/tool questions → Discover MCP.
 
 ---
 

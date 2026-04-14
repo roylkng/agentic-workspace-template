@@ -78,6 +78,7 @@ Skills are organized copilot instructions with decision trees, grep patterns, er
 | **[Code Review](.github/skills/code-review/SKILL.md)** | Correctness, security, conventions, test coverage |
 | **[Workspace Understand](.github/skills/workspace-understand/SKILL.md)** | Map services, detect frameworks, generate dependency graph |
 | **[Env Health](.github/skills/env-health/SKILL.md)** | Check environment readiness, diagnose common issues |
+| **[Discover MCP](.github/skills/discover-mcp/SKILL.md)** | Detect and catalog available MCP tools |
 
 Plus 7 atomic procedures used by the dev agent: [reproduce-test](.github/skills/procedures/reproduce-test.md), [investigate](.github/skills/procedures/investigate.md), [plan](.github/skills/procedures/plan.md), [implement](.github/skills/procedures/implement.md), [verify](.github/skills/procedures/verify.md), [changeset](.github/skills/procedures/changeset.md), [pr-compose](.github/skills/procedures/pr-compose.md).
 
@@ -173,6 +174,7 @@ workspace/
 │   │   ├── code-review/
 │   │   ├── workspace-understand/
 │   │   ├── env-health/
+│   │   ├── discover-mcp/
 │   │   └── procedures/            # Atomic steps (reproduce-test, investigate, plan, etc.)
 │   └── templates/                 # Artifact templates
 ├── tests/                         # Workspace-level tests
@@ -226,4 +228,8 @@ When a change spans repos:
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on adding skills, procedures, and templates.
